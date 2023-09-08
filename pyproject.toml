@@ -28,3 +28,4 @@ version = {file = "VERSION"}
 
 [tool.setuptools.package-data]
 tangods_evr116 = ["VERSION"]
+"tangods_evr116.calibration" = ["*.csv"]

@@ -56,6 +56,7 @@ class EVR116Controller(Device):
 
     def init_valve(self):
         from rpi_hardware_pwm import HardwarePWM
+
         self._hardware_pwm = HardwarePWM(pwm_channel=0, hz=1_000)
         self._hardware_pwm.start(0)
 
@@ -72,11 +73,9 @@ class EVR116Controller(Device):
             "pressure_voltage_curve.csv"
         )
 
-        voltage, pressure = np.loadtxt(
-            table_path, delimiter=";", unpack=True
-        )
+        voltage, pressure = np.loadtxt(table_path, delimiter=";", unpack=True)
         args = np.argsort(voltage)
-        self._curve_voltage, self._curve_pressure =  voltage[args], pressure[args]
+        self._curve_voltage, self._curve_pressure = voltage[args], pressure[args]
 
     def init_device(self):
         Device.init_device(self)
