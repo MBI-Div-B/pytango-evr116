@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tangods_evr116"
+description = "Pfeiffer EVR116 TangoDS"
+keywords = ["tango device", "tango", "pytango", "pfeiffer", "EVF116"]
+readme = "README.md"
+authors = [
+    {name = "Leonid Lunin", email = "lunin.leonid@gmail.com"},
+]
+requires-python = ">=3.10"
+dependencies = ['numpy', 'pytango', 'rpi-hardware-pwm']
+license = {text = "MIT"}
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/MBI-Div-B/pytango-evr116"
+
+[project.scripts]
+EVR116 = "tangods_evr116:main"
+
+[tool.setuptools.dynamic]
+version = {file = "VERSION"}
+
+[tool.setuptools.packages.find]
+
+[tool.setuptools.package-data]
+tangods_evr116 = ["VERSION"]
