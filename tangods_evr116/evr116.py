@@ -8,6 +8,7 @@ class EVR116Controller(Device):
     voltage = attribute(
         label="appl. voltage",
         dtype=float,
+        access=AttrWriteType.READ_WRITE,
         unit="V",
         format="%.2f",
         max_value=10,
@@ -17,6 +18,7 @@ class EVR116Controller(Device):
     gasflow = attribute(
         label="appl. voltage",
         dtype=float,
+        access=AttrWriteType.READ_WRITE,
         unit="mbar l/s",
         format="%.2f",
         min_value=0,
@@ -41,7 +43,7 @@ class EVR116Controller(Device):
                 voltage, self._curve_voltage, self._curve_pressure, left=0
             )
             self._gasflow = conv_gasflow
-        elif gasflow is not None and gasflow is None:
+        elif gasflow is not None and voltage is None:
             self._gasflow = gasflow
             conv_voltage = np.interp(
                 gasflow, self._curve_pressure, self._curve_voltage, left=0, right=10
@@ -65,7 +67,12 @@ class EVR116Controller(Device):
         self._hardware_pwm.stop()
 
     def send_to_valve(self):
-        value_to_set = min(max((self._voltage / 10) * 100, 0), 100)
+        # 10.60V is vacupi output in 100 duty cycle
+        value_to_set = np.interp(
+            self._voltage,
+            self._voltage_duty_cycle,
+            self._duty_cycle,
+        )
         self._hardware_pwm.change_duty_cycle(value_to_set)
 
     def load_calibration_curve(self):
@@ -77,8 +84,16 @@ class EVR116Controller(Device):
         args = np.argsort(voltage)
         self._curve_voltage, self._curve_pressure = voltage[args], pressure[args]
 
+        voltage_curve_path = table_path = files("tangods_evr116.calibration").joinpath(
+            "duty_cycle_voltage_curve.csv"
+        )
+        cycle, voltage = np.loadtxt(table_path, delimiter=";", unpack=True)
+        args = np.argsort(cycle)
+        self._duty_cycle, self._voltage_duty_cycle = cycle[args], voltage[args]
+
     def init_device(self):
         Device.init_device(self)
+        self.load_calibration_curve()
         self._voltage = 0
         self._gasflow = 0
         self.init_valve()
