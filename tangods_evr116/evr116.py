@@ -16,7 +16,7 @@ class EVR116Controller(Device):
     )
 
     gasflow = attribute(
-        label="appl. voltage",
+        label="gas flow",
         dtype=float,
         access=AttrWriteType.READ_WRITE,
         unit="mbar l/s",
@@ -56,6 +56,16 @@ class EVR116Controller(Device):
     def apply(self):
         self.send_to_valve()
 
+    @command
+    def open_completely(self):
+        self.write_voltage(10)
+        self.apply()
+
+    @command
+    def close_completely(self):
+        self.write_voltage(0)
+        self.apply()
+
     def init_valve(self):
         from rpi_hardware_pwm import HardwarePWM
 
@@ -75,25 +85,28 @@ class EVR116Controller(Device):
         )
         self._hardware_pwm.change_duty_cycle(value_to_set)
 
-    def load_calibration_curve(self):
-        table_path = files("tangods_evr116.calibration").joinpath(
+    def load_calibration_curves(self):
+        # load pfeiffer calibration curve for dependency of gas flow as function of applied voltage
+        pfeiffer_table_path = files("tangods_evr116.calibration").joinpath(
             "pressure_voltage_curve.csv"
         )
-
-        voltage, pressure = np.loadtxt(table_path, delimiter=";", unpack=True)
+        voltage, pressure = np.loadtxt(pfeiffer_table_path, delimiter=";", unpack=True)
+        # sort is necessary since the order is relevant for interpolation
         args = np.argsort(voltage)
         self._curve_voltage, self._curve_pressure = voltage[args], pressure[args]
 
-        voltage_curve_path = table_path = files("tangods_evr116.calibration").joinpath(
+        # load DAC calibration curve for converting PWM duty cycle parameter of PWM
+        # since the DAC is not linearly mapping 0..100 duty cycle to 0..10.61 Volts
+        voltage_curve_path = files("tangods_evr116.calibration").joinpath(
             "duty_cycle_voltage_curve.csv"
         )
-        cycle, voltage = np.loadtxt(table_path, delimiter=";", unpack=True)
+        cycle, voltage = np.loadtxt(voltage_curve_path, delimiter=";", unpack=True)
         args = np.argsort(cycle)
         self._duty_cycle, self._voltage_duty_cycle = cycle[args], voltage[args]
 
     def init_device(self):
         Device.init_device(self)
-        self.load_calibration_curve()
+        self.load_calibration_curves()
         self._voltage = 0
         self._gasflow = 0
         self.init_valve()

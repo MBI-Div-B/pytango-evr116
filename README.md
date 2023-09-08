@@ -1,6 +1,11 @@
 # pytango-EVR116
 
 ## Description
+With this TangoDS you can control the [Pfeiffer EVR116 motorized gas valve](https://www.pfeiffer-vacuum.com/de/produkte/ventile-kammern-komponenten/vakuumventile/druckregelventile/gasregelventile/1796/evr-116-gasregelventil-motorisch) via VacuPI.
+
+## Usage
+1. Assign an either target voltage or gas flow to one of tango attributes.
+2. Execute `apply()` command to apply the changes to the valve.
 
 ## Authors
 
