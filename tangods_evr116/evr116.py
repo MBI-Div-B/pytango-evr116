@@ -56,13 +56,13 @@ class EVR116Controller(Device):
     def apply(self):
         self.send_to_valve()
 
-    @command(dtype_in=bool)
+    @command(dtype_in=str, doc_in="type any character to confirm")
     def open_completely(self, confirm):
         if confirm:
             self.write_voltage(10)
             self.apply()
 
-    @command(dtype_in=bool)
+    @command(dtype_in=str, doc_in="type any character to confirm")
     def close_completely(self, confirm):
         if confirm:
             self.write_voltage(0)
