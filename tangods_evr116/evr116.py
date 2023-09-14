@@ -56,15 +56,17 @@ class EVR116Controller(Device):
     def apply(self):
         self.send_to_valve()
 
-    @command
-    def open_completely(self):
-        self.write_voltage(10)
-        self.apply()
+    @command(dtype_in=bool)
+    def open_completely(self, confirm):
+        if confirm:
+            self.write_voltage(10)
+            self.apply()
 
-    @command
-    def close_completely(self):
-        self.write_voltage(0)
-        self.apply()
+    @command(dtype_in=bool)
+    def close_completely(self, confirm):
+        if confirm:
+            self.write_voltage(0)
+            self.apply()
 
     def init_valve(self):
         from rpi_hardware_pwm import HardwarePWM
