@@ -141,18 +141,17 @@ class EVR116Controller(Device):
 
         self.set_state(DevState.MOVING)
         for duty_cycle in range(0, 100, 10):
-            # self._hardware_pwm.duty_cycle(duty_cycle)
+            self._hardware_pwm.duty_cycle(duty_cycle)
             self.info_stream(f"Duty cycle: {duty_cycle}")
             time.sleep(6)
-        # self._hardware_pwm.duty_cycle(0)
+        self._hardware_pwm.duty_cycle(0)
         self.set_state(DevState.ON)
 
     def init_valve(self):
-        # from rpi_hardware_pwm import HardwarePWM
+        from rpi_hardware_pwm import HardwarePWM
 
-        # self._hardware_pwm = HardwarePWM(pwm_channel=0, hz=1_000)
-        # self._hardware_pwm.start(0)
-        pass
+        self._hardware_pwm = HardwarePWM(pwm_channel=0, hz=1_000)
+        self._hardware_pwm.start(0)
 
     def delete_valve(self):
         self._hardware_pwm.duty_cycle(0)
