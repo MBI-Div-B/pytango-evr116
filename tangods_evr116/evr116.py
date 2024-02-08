@@ -1,4 +1,4 @@
-from tango import AttrWriteType, DispLevel, DevState
+from tango import AttrWriteType, DispLevel, DevState, DeviceProxy
 from tango.server import Device, attribute, command, device_property, GreenMode
 from importlib.resources import files
 import numpy as np
@@ -17,6 +17,9 @@ class EVR116Controller(Device):
         default_value=np.array(
             [0, 1.4, 2.77, 4.11, 5.45, 6.76, 8.07, 9.36, 10.44, 10.61]
         ),
+    )
+    Pressure_device_FQDN = device_property(
+        dtype=str, doc="Tango device which indicates pressure in the evacuated volume"
     )
     voltage = attribute(
         label="appl. voltage",
@@ -184,6 +187,8 @@ class EVR116Controller(Device):
 
     def init_device(self):
         Device.init_device(self)
+        self.get_device_properties()
+        self.init_dynamic_attributes()
         self.load_calibration_curves()
         self._voltage = 0
         self._gasflow = 0
@@ -192,6 +197,30 @@ class EVR116Controller(Device):
         self.init_valve()
         self._command_loop = asyncio.new_event_loop()
         self.set_state(DevState.ON)
+
+    def init_dynamic_attributes(self):
+        if self.Pressure_device_FQDN is not None:
+            try:
+                self.pressure_proxy = DeviceProxy(self.Pressure_device_FQDN)
+                self.pressure_proxy.ping()
+            except:
+                self.info_stream(
+                    f"Could not connect to pressure device {self.Pressure_device_FQDN}"
+                )
+            else:
+                self.add_attribute(
+                    attribute(
+                        name="pressure",
+                        label="pressure",
+                        dtype=float,
+                        format="%7.3e",
+                        unit="mbar",
+                        fget=self.get_pressure,
+                    )
+                )
+
+    def get_pressure(self, attr_name):
+        return self.pressure_proxy.pressure
 
     def delete_device(self):
         Device.delete_device(self)
